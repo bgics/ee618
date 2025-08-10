@@ -1,0 +1,54 @@
+.title Inverter
+
+.include models-180nm
+
+vdd vdd 0 dc 1.8
+vsin vin vbias sin(0 10m 200k)
+vbias vbias 0 dc 0.9
+
+mp vout vin vdd vdd CMOSP W=7u L=0.18u 
+mn vout vin 0   0   CMOSN W=2u L=0.18u
+
+cl vout 0 250f
+
+.control
+run
+
+set color0 = white
+set color1 = black
+set color2 = red
+
+tran 10ns 40us
+
+plot v(vout)
+plot v(vin)
+
+meas tran vout_max max v(vout)
+meas tran vout_min min v(vout)
+
+let vpp_out = vout_max - vout_min
+print vpp_out
+
+meas tran vin_max max v(vin)
+meas tran vin_min min v(vin)
+
+let vpp_in = vin_max - vin_min
+print vpp_in
+
+let gain_transient = vpp_out / vpp_in
+print gain_transient
+
+alter vsin sin(0 0 200k)
+dc vbias 0 1.8 0.01
+
+plot v(vout) vs v(vbias)
+
+let gain = deriv(v(vout))
+plot gain vs v(vbias)
+
+meas dc gain_at_vbias_0v9 find gain when v(vbias) = 0.9
+
+.endc
+
+.end
+

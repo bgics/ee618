@@ -1,0 +1,139 @@
+.title PMOS Characterization
+
+.include models-180nm
+
+vdd vdd 0 dc 1.8
+vsd vdd d dc 0.2
+vsg vdd g dc 0
+
+mp d g vdd vdd CMOSP W=7u L=0.18u
+
+.control
+
+run
+
+set color0 = white
+set color1 = black
+set color2 = red
+
+alter vsd dc 0.2
+dc vsg 0 1.8 0.01
+
+let isd = -i(vsd)
+let vsg = v(vdd) - v(g)
+
+let sqrt_isd = sqrt(isd)
+let slope = deriv(sqrt_isd)
+
+meas dc slope find slope when vsg = 0.8
+meas dc sqrt_isd_at_vsg_0v8 find sqrt_isd when vsg = 0.8
+
+let vth = 0.8 - (sqrt_isd_at_vsg_0v8 / slope)
+print vth
+
+plot isd vs vsg
+
+let slope = deriv(isd)
+
+meas dc gm find slope when vsg=0.9
+
+alter vsd dc 0.6
+dc vsg 0 1.8 0.01
+
+let isd = -i(vsd)
+let vsg = v(vdd) - v(g)
+
+let sqrt_isd = sqrt(isd)
+let slope = deriv(sqrt_isd)
+
+meas dc slope find slope when vsg = 0.8
+meas dc sqrt_isd_at_vsg_0v8 find sqrt_isd when vsg = 0.8
+
+let vth = 0.8 - (sqrt_isd_at_vsg_0v8 / slope)
+print vth
+
+let k = (2 * 0.18 * slope * slope / 7)
+print k
+
+plot isd vs vsg
+
+let slope = deriv(isd)
+
+meas dc gm find slope when vsg=0.9
+
+alter vsd dc 1
+dc vsg 0 1.8 0.01
+
+let isd = -i(vsd)
+let vsg = v(vdd) - v(g)
+
+let sqrt_isd = sqrt(isd)
+let slope = deriv(sqrt_isd)
+
+meas dc slope find slope when vsg = 0.8
+meas dc sqrt_isd_at_vsg_0v8 find sqrt_isd when vsg = 0.8
+
+let vth = 0.8 - (sqrt_isd_at_vsg_0v8 / slope)
+print vth
+
+let k = (2 * 0.18 * slope * slope / 7)
+print k
+
+plot isd vs vsg
+
+let slope = deriv(isd)
+
+meas dc gm find slope when vsg=0.9
+
+alter vsg dc 0.6
+dc vsd 0 1.8 0.01
+
+let isd = -i(vsd)
+let vsd = v(vdd) - v(d)
+
+plot isd vs vsd
+
+let slope = deriv(isd)
+
+meas dc slope find slope when vsd = 1.2
+meas dc isd_at_vsd_1v2 find isd when vsd = 1.2
+let lambda = slope / (isd_at_vsd_1v2 - slope)
+print lambda
+
+alter vsg dc 0.8
+dc vsd 0 1.8 0.01
+
+let isd = -i(vsd)
+let vsd = v(vdd) - v(d)
+
+plot isd vs vsd
+
+let slope = deriv(isd)
+
+meas dc slope find slope when vsd = 1.2
+meas dc isd_at_vsd_1v2 find isd when vsd = 1.2
+let lambda = slope / (isd_at_vsd_1v2 - slope)
+print lambda
+
+alter vsg dc 1
+dc vsd 0 1.8 0.01
+
+let isd = -i(vsd)
+let vsd = v(vdd) - v(d)
+
+plot isd vs vsd
+
+let slope = deriv(isd)
+
+meas dc gout find slope when isd=400u
+let rout = 1/gout
+print rout
+
+meas dc slope find slope when vsd = 1.2
+meas dc isd_at_vsd_1v2 find isd when vsd = 1.2
+let lambda = slope / (isd_at_vsd_1v2 - slope)
+print lambda
+
+.endc
+
+.end
