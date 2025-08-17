@@ -2,7 +2,7 @@
 
 .include models-180nm
 
-vds d 0 dc 0.2
+vds d 0 dc 0
 vgs g 0 dc 0
 
 mn d g 0 0 CMOSN W=2u L=0.18u
@@ -17,10 +17,9 @@ set color2 = red
 
 let gm_probe_vgs = 0.9
 let gout_probe_ids = 350u
+let vth_probe_vgs = 0.7
 
-let vth = 0
-let lambda = 0
-
+let k = 0
 let w = 2u
 let l = 0.18u
 
@@ -44,29 +43,6 @@ let vgs = v(g)
 
 plot ids vs vgs
 
-* ------------------ Ids vs Vds @ Vgs = 1V ------------------ *
-
-alter vgs dc 1
-dc vds 0 1.8 0.01
-
-let ids = -i(vds)
-let vds = v(d)
-
-plot ids vs vds
-
-let slope = deriv(ids)
-
-meas dc gout find slope when ids = gout_probe_ids
-let rout = 1 / gout
-print rout
-
-meas dc lambda_probe_slope find slope when ids = gout_probe_ids
-meas dc lambda_probe_ids find ids when ids = gout_probe_ids
-meas dc lambda_probe_vds find vds when ids = gout_probe_ids
-
-let lambda = lambda_probe_slope / (lambda_probe_ids - (lambda_probe_slope * lambda_probe_vds))
-print lambda
-
 * ------------------ Ids vs Vgs @ Vds = 1V ------------------ *
 
 alter vds dc 1
@@ -78,11 +54,10 @@ let vgs = v(g)
 let sqrt_ids = sqrt(ids)
 let sqrt_slope = deriv(sqrt_ids)
 
-meas dc sqrt_slope_probe_vgs max_at sqrt_slope
+plot sqrt_ids vs vgs
 
-meas dc vth_probe_sqrt_slope find sqrt_slope when vgs = sqrt_slope_probe_vgs
-meas dc vth_probe_sqrt_ids find sqrt_ids when vgs = sqrt_slope_probe_vgs
-meas dc vth_probe_vgs find vgs when vgs = sqrt_slope_probe_vgs
+meas dc vth_probe_sqrt_slope find sqrt_slope when vgs = vth_probe_vgs
+meas dc vth_probe_sqrt_ids find sqrt_ids when vgs = vth_probe_vgs
 
 let vth = vth_probe_vgs - (vth_probe_sqrt_ids / vth_probe_sqrt_slope)
 print vth
@@ -92,12 +67,7 @@ plot ids vs vgs
 let slope = deriv(ids)
 meas dc gm find slope when vgs = gm_probe_vgs
 
-let vds = v(d)
-meas dc k_probe_sqrt_slope find sqrt_slope when vgs = sqrt_slope_probe_vgs
-meas dc k_probe_vds find vds when vgs = sqrt_slope_probe_vgs
-
-let k = (2 * l * (k_probe_sqrt_slope^2)) / (w * (1 + (lambda * k_probe_vds)))
-print k
+let k = (gm * l) / (w * (gm_probe_vgs - vth))
 
 * ------------------ Ids vs Vds @ Vgs = 0.6V ------------------ *
 
@@ -113,6 +83,48 @@ plot ids vs vds
 
 alter vgs dc 0.8
 dc vds 0 1.8 0.01
+
+let ids = -i(vds)
+let vds = v(d)
+
+plot ids vs vds
+
+* ------------------ Ids vs Vds @ Vgs = 1V ------------------ *
+
+alter vgs dc 1
+dc vds 0 1.8 0.01
+
+let ids = -i(vds)
+let vds = v(d)
+
+plot ids vs vds
+
+let slope = deriv(ids)
+
+meas dc gout find slope when ids = gout_probe_ids
+meas dc gout_probe_vds find vds when ids = gout_probe_ids
+
+let rout = 1 / gout
+print rout
+
+let lambda = 1 / ((rout * gout_probe_ids) - gout_probe_vds)
+print lambda
+
+let k = k / (1 + lambda)
+print k
+
+* ------------------ Ids vs Vgs @ Vds = 0.2V, 0.6V, 1V  ------------------ *
+
+dc vgs 0 1.8 0.01 vds 0.2 1 0.4
+
+let ids = -i(vds)
+let vgs = v(g)
+
+plot ids vs vgs
+
+* ------------------ Ids vs Vds @ Vgs = 0.6V, 0.8V, 1V  ------------------ *
+
+dc vds 0 1.8 0.01 vgs 0.6 1 0.2
 
 let ids = -i(vds)
 let vds = v(d)

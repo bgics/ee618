@@ -18,10 +18,9 @@ set color2 = red
 
 let gm_probe_vsg = 0.9
 let gout_probe_isd = 400u
+let vth_probe_vsg = 0.7
 
-let vth = 0
-let lambda = 0
-
+let k = 0
 let w = 7u
 let l = 0.18u
 
@@ -45,29 +44,6 @@ let vsg = v(vdd) - v(g)
 
 plot isd vs vsg
 
-* ------------------ Isd vs Vsd @ Vsg = 1V ------------------ *
-
-alter vsg dc 1
-dc vsd 0 1.8 0.01
-
-let isd = -i(vsd)
-let vsd = v(vdd) - v(d)
-
-plot isd vs vsd
-
-let slope = deriv(isd)
-
-meas dc gout find slope when isd = gout_probe_isd
-let rout = 1 / gout
-print rout
-
-meas dc lambda_probe_slope find slope when isd = gout_probe_isd
-meas dc lambda_probe_isd find isd when isd = gout_probe_isd
-meas dc lambda_probe_vsd find vsd when isd = gout_probe_isd
-
-let lambda = lambda_probe_slope / (lambda_probe_isd - (lambda_probe_slope * lambda_probe_vsd))
-print lambda
-
 * ------------------ Isd vs Vsg @ Vsd = 1V ------------------ *
 
 alter vsd dc 1
@@ -79,11 +55,10 @@ let vsg = v(vdd) - v(g)
 let sqrt_isd = sqrt(isd)
 let sqrt_slope = deriv(sqrt_isd)
 
-meas dc sqrt_slope_probe_vsg max_at sqrt_slope
+plot sqrt_isd vs vsg
 
-meas dc vth_probe_sqrt_slope find sqrt_slope when vsg = sqrt_slope_probe_vsg
-meas dc vth_probe_sqrt_isd find sqrt_isd when vsg = sqrt_slope_probe_vsg
-meas dc vth_probe_vsg find vsg when vsg = sqrt_slope_probe_vsg
+meas dc vth_probe_sqrt_slope find sqrt_slope when vsg = vth_probe_vsg
+meas dc vth_probe_sqrt_isd find sqrt_isd when vsg = vth_probe_vsg
 
 let vth = vth_probe_vsg - (vth_probe_sqrt_isd / vth_probe_sqrt_slope)
 print vth
@@ -93,12 +68,7 @@ plot isd vs vsg
 let slope = deriv(isd)
 meas dc gm find slope when vsg = gm_probe_vsg
 
-let vsd = v(vdd) - v(d)
-meas dc k_probe_sqrt_slope find sqrt_slope when vsg = sqrt_slope_probe_vsg
-meas dc k_probe_vsd find vsd when vsg = sqrt_slope_probe_vsg
-
-let k = (2 * l * (k_probe_sqrt_slope^2)) / (w * (1 + (lambda * k_probe_vsd)))
-print k
+let k = (gm * l) / (w * (gm_probe_vsg - vth))
 
 * ------------------ Isd vs Vsd @ Vsg = 0.6V ------------------ *
 
@@ -114,6 +84,48 @@ plot isd vs vsd
 
 alter vsg dc 0.8
 dc vsd 0 1.8 0.01
+
+let isd = -i(vsd)
+let vsd = v(vdd) - v(d)
+
+plot isd vs vsd
+
+* ------------------ Isd vs Vsd @ Vsg = 1V ------------------ *
+
+alter vsg dc 1
+dc vsd 0 1.8 0.01
+
+let isd = -i(vsd)
+let vsd = v(vdd) - v(d)
+
+plot isd vs vsd
+
+let slope = deriv(isd)
+
+meas dc gout find slope when isd = gout_probe_isd
+meas dc gout_probe_vsd find vsd when isd = gout_probe_isd
+
+let rout = 1 / gout
+print rout
+
+let lambda = 1 / ((rout * gout_probe_isd) - gout_probe_vsd)
+print lambda
+
+let k = k / (1 + lambda)
+print k
+
+* ------------------ isd vs vsg @ vsd = 0.2V, 0.6V, 1V  ------------------ *
+
+dc vsg 0 1.8 0.01 vsd 0.2 1 0.4
+
+let isd = -i(vsd)
+let vsg = v(vdd) - v(g)
+
+plot isd vs vsg
+
+* ------------------ isd vs vsd @ vsg = 0.6V, 0.8V, 1V  ------------------ *
+
+dc vsd 0 1.8 0.01 vsg 0.6 1 0.2
 
 let isd = -i(vsd)
 let vsd = v(vdd) - v(d)

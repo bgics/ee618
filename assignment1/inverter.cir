@@ -38,7 +38,7 @@ print vpp_in
 let gain_transient = vpp_out / vpp_in
 print gain_transient
 
-alter vsin sin(0 0 200k)
+alter vsin dc 0
 dc vbias 0 1.8 0.01
 
 plot v(vout) vs v(vbias)
