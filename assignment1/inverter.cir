@@ -20,8 +20,7 @@ set color2 = red
 
 tran 10ns 40us
 
-plot v(vout)
-plot v(vin)
+plot v(vout) v(vin)
 
 meas tran vout_max max v(vout)
 meas tran vout_min min v(vout)
