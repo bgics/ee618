@@ -123,7 +123,7 @@ let vsg = v(vdd) - v(g)
 
 plot isd vs vsg
 
-* ------------- Isd vs vsd @ Vsg = 0.6V, 0.8V, 1V ------------- *
+* ------------- Isd vs Vsd @ Vsg = 0.6V, 0.8V, 1V ------------- *
 
 dc vsd 0 1.8 0.01 vsg 0.6 1 0.2
 
