@@ -1,5 +1,4 @@
 .title Inverter
-
 .include models-180nm
 
 vdd vdd 0 dc 1.8
@@ -13,7 +12,6 @@ cl vout 0 250f
 
 .control
 run
-
 set color0 = white
 set color1 = black
 set color2 = red
