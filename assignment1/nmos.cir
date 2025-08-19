@@ -113,7 +113,7 @@ print lambda
 let k = k / (1 + lambda)
 print k
 
-* ------------------ Ids vs Vgs @ Vds = 0.2V, 0.6V, 1V  ------------------ *
+* ------------ Ids vs Vgs @ Vds = 0.2V, 0.6V, 1V ------------ *
 
 dc vgs 0 1.8 0.01 vds 0.2 1 0.4
 
@@ -122,7 +122,7 @@ let vgs = v(g)
 
 plot ids vs vgs
 
-* ------------------ Ids vs Vds @ Vgs = 0.6V, 0.8V, 1V  ------------------ *
+* ------------ Ids vs Vds @ Vgs = 0.6V, 0.8V, 1V ------------ *
 
 dc vds 0 1.8 0.01 vgs 0.6 1 0.2
 

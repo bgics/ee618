@@ -18,6 +18,8 @@ set color0 = white
 set color1 = black
 set color2 = red
 
+* -------- Transient Analysis -------- *
+
 tran 10ns 40us
 
 plot v(vout) v(vin)
@@ -36,6 +38,8 @@ print vpp_in
 
 let gain_transient = vpp_out / vpp_in
 print gain_transient
+
+* -------- DC Analysis -------- *
 
 alter vsin dc 0
 dc vbias 0 1.8 0.01
