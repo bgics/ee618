@@ -129,7 +129,7 @@ for further calculations.
 From the DC gain constraint, we have
 \begin{align}
 	g_{mp} & \geq \frac{8}{3.8~\text{k}\Omega} \nonumber \\
-	       & \geq \SI{2}{\milli\siemens}.
+	       & \geq \SI{2.1}{\milli\siemens}.
 \end{align}
 
 \subsubsection{Output Voltage and Drain Current}
@@ -159,7 +159,7 @@ The transconductance of a PMOS transistor in saturation is
 \[
 	g_{mp} = \sqrt{2 I_{SD} \mu_p C_{ox} \frac{W}{L}}.
 \]
-Using the requirement $g_{mp} \geq \SI{2}{\milli\siemens}$ and the calculated drain current $I_{SD} = \SI{200}{\micro\ampere}$, we obtain
+Using the requirement $g_{mp} \geq \SI{2.1}{\milli\siemens}$ and the calculated drain current $I_{SD} = \SI{200}{\micro\ampere}$, we obtain
 \[
 	W \geq \SI{21.76}{\micro\meter} \approx \SI{22}{\micro\meter}.
 \]
@@ -298,6 +298,12 @@ Corner simulations were performed for six process corners: \textit{Typical}, \te
 \end{figure}
 
 \section{PEX Analysis}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/pex.png}
+	\caption{Quantus Run Screenshot}
+\end{figure}
 
 \subsection{AC Analysis}
 \begin{figure}[H]
