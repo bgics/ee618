@@ -1,0 +1,320 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage{booktabs} 
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+
+	\huge \textbf{EE 618: CMOS Analog VLSI Design} \\
+	\vspace{1cm}
+
+	\LARGE \textsc{Assignment 2} \\
+	\vspace{5cm}
+
+	\includegraphics[width=0.55\textwidth]{../icon.png} \\
+	\vspace{5cm}
+
+	\Large
+	\begin{tabular}{rl}
+		\textbf{Student Name:}    & Bhuvansh Goyal    \\
+		\textbf{Roll Number:}     & 22B3908           \\
+		\textbf{Instructor:}      & Prof. Rajesh Zele \\
+		\textbf{Submission Date:} & 10 Sep 2025
+	\end{tabular}
+
+	\vfill
+\end{titlepage}
+
+\clearpage
+
+\tableofcontents
+
+\clearpage
+
+\section{Design Specifications}
+
+The objective of this assignment is to design a Common Source PMOS Amplifier with a resistive load using the GPDK 45nm technology. The complete circuit is illustrated in Figure~\ref{fig:cs_amp_schematic}. The core amplifier block, highlighted in red, must be designed to meet the following performance specifications:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{design_schematic.eps}
+	\caption{Circuit diagram of the Common Source PMOS Amplifier. The core amplifier cell to be designed is highlighted in red.}
+	\label{fig:cs_amp_schematic}
+\end{figure}
+
+The target performance metrics and operating conditions are:
+\begin{itemize}
+	\item \textbf{DC Gain ($A_{v,DC}$):} $\geq \SI{18}{\deci\bel}$
+	\item \textbf{3dB Cut-off Frequency ($f_{3dB}$):} $\geq \SI{4}{\mega\hertz}$
+	\item \textbf{DC Output Voltage ($V_{OUT,DC}$):} $900 \pm 50$\,\si{\milli\volt}
+	\item \textbf{Power Dissipation ($P_{diss}$):} $\leq \SI{0.6}{\milli\watt}$
+\end{itemize}
+
+The amplifier is to be designed with the following fixed parameters:
+\begin{itemize}
+	\item \textbf{Supply Voltage ($V_{DD}$):} $\SI{1.8}{\volt}$
+	\item \textbf{Bias Current ($I_{BIAS}$):} $\SI{20}{\micro\ampere}$
+	\item \textbf{Load Capacitance ($C_L$):} $\SI{10}{\pico\farad}$
+\end{itemize}
+
+\clearpage
+
+\section{Hand Calculations}
+
+Hand calculations were performed to determine the initial design values based on the given specifications. This included extracting process parameters and applying small-signal analysis to obtain design constraints.
+
+\subsection{Process Parameter Extraction}
+The values of $\mu_p C_{ox}$ and $\lambda$ for the GPDK 45\,nm PMOS transistor were obtained from DC simulations using the testbench in Figure~\ref{fig:test_circuit}. These were read directly from the device operating point data.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{./images/test_circuit.png}
+	\caption{DC testbench for PMOS parameter extraction.}
+	\label{fig:test_circuit}
+\end{figure}
+
+The extracted values are:
+\begin{itemize}
+	\item $\mu_p C_{ox} \approx \SI{200}{\micro\ampere / \volt\squared}$
+	\item $\lambda \approx \SI{0.2}{\per\volt}$
+\end{itemize}
+
+\subsection{Small-Signal Analysis and Design Constraints}
+The small-signal model of transistor M1 (Figure~\ref{fig:small_signal}) was used to derive the amplifier transfer function. The intrinsic capacitances of the PMOS are neglected since the load capacitance $C_L$ is dominant.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./small_signal.eps}
+	\caption{Small-signal model of M1.}
+	\label{fig:small_signal}
+\end{figure}
+
+The gain transfer function is
+\begin{equation}
+	A_v(s) = \frac{-g_{mp}\,(r_o \parallel R_D)}{1 + s C_L (r_o \parallel R_D)} .
+\end{equation}
+
+\subsubsection{DC Gain Constraint}
+For $s=0$, the DC gain is
+\begin{align}
+	|A_{v,DC}| & = g_{mp}\,(r_o \parallel R_D) \geq 10^{18/20} \nonumber \\
+	           & \geq 7.94 \approx 8
+\end{align}
+
+\subsubsection{3dB Frequency Constraint}
+The 3\,dB frequency is
+\[
+	f_{3dB} = \frac{1}{2\pi C_L (r_o \parallel R_D)} .
+\]
+For $C_L = \SI{10}{\pico\farad}$ and $f_{3dB} \geq \SI{4}{\mega\hertz}$,
+\begin{align}
+	(r_o \parallel R_D) & \leq \frac{1}{2\pi \times 10^{-11} \times 4 \times 10^6} \nonumber \\
+	                    & \leq \SI{3.98}{\kilo\ohm} \approx \SI{4}{\kilo\ohm}.
+\end{align}
+
+We take
+\begin{align}
+	(r_o \parallel R_D) & = \SI{3.8}{\kilo\ohm}
+	\label{eq:taken_value}
+\end{align}
+for further calculations.
+
+\subsubsection{DC Gain Constraint}
+From the DC gain constraint, we have
+\begin{align}
+	g_{mp} & \geq \frac{8}{3.8~\text{k}\Omega} \nonumber \\
+	       & \geq \SI{2}{\milli\siemens}.
+\end{align}
+
+\subsubsection{Output Voltage and Drain Current}
+Using the output DC voltage requirement,
+\begin{align}
+	I_{SD} & = \frac{0.9}{R_D} .
+	\label{eq:current_eq}
+\end{align}
+
+The small-signal output resistance is
+\[
+	r_o = \frac{1}{\lambda I_{SD}} = \frac{R_D}{\lambda \cdot 0.9}.
+\]
+
+Substituting the values of $\lambda$ and $r_o$ into Equation~\ref{eq:taken_value} gives
+\[
+	R_D = \SI{4.484}{\kilo\ohm} \approx \SI{4.5}{\kilo\ohm}.
+\]
+
+Using this $R_D$ in Equation~\ref{eq:current_eq}, the drain current is
+\[
+	I_{SD} = \frac{0.9}{4.5~\text{k}\Omega} \approx \SI{200}{\micro\ampere}.
+\]
+
+\subsubsection{Transistor Sizing}
+The transconductance of a PMOS transistor in saturation is
+\[
+	g_{mp} = \sqrt{2 I_{SD} \mu_p C_{ox} \frac{W}{L}}.
+\]
+Using the requirement $g_{mp} \geq \SI{2}{\milli\siemens}$ and the calculated drain current $I_{SD} = \SI{200}{\micro\ampere}$, we obtain
+\[
+	W \geq \SI{21.76}{\micro\meter} \approx \SI{22}{\micro\meter}.
+\]
+The channel length was chosen as $L = \SI{400}{\nano\meter}$.
+
+For transistor $M_B$, which carries one-tenth the current of $M_1$, the width scales proportionally:
+\[
+	W_B = 0.1 \times W_{M1} \approx \SI{2.2}{\micro\meter}.
+\]
+
+\subsection{Final Component Values}
+Based on the derived constraints and the design specifications (particularly $V_{OUT,DC} = \SI{0.9}{\volt}$ and $I_D = \SI{200}{\micro\ampere}$ for M1), the final component values were calculated. The load resistor $R_D$ was chosen to set the DC output voltage. The aspect ratio of the main amplifier transistor M1 was then determined to meet the DC gain requirement, while the bias transistor MB was sized to mirror the reference current.
+
+The final calculated values are summarized in Table~\ref{tab:final_design_values}.
+
+\begin{table}[H]
+	\centering
+	\caption{Final Component Values from Hand Calculations}
+	\label{tab:final_design_values}
+	\begin{tabular}{@{}llc@{}}
+		\toprule
+		\textbf{Component}          & \textbf{Parameter} & \textbf{Value}         \\
+		\midrule
+		Amplifier PMOS (M1)         & Width (W)          & \SI{22}{\micro\meter}  \\
+		                            & Length (L)         & \SI{400}{\nano\meter}  \\
+		\midrule
+		Bias PMOS (MB)              & Width (W)          & \SI{2.2}{\micro\meter} \\
+		                            & Length (L)         & \SI{400}{\nano\meter}  \\
+		\midrule
+		Load Resistor ($R_D$)       & Resistance         & \SI{4.5}{\kilo\ohm}    \\
+		Bias Resistor ($R_{Large}$) & Resistance         & \SI{7.5}{\kilo\ohm}    \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\section{Schematic}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/schematic.png}
+	\caption{Amplifier schematic with annotated device sizes.}
+\end{figure}
+
+The final transistor widths in the implemented design are larger than the hand-calculated values. This adjustment was necessary because the effective $\mu_p C_{ox}$ (observed in M1) decreased to approximately \SI{160}{\micro\ampere / \volt\squared}, requiring wider devices to achieve the specified drain current.
+
+\section{DC Analysis}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/dc_op.png}
+	\caption{DC operating point analysis of the amplifier.}
+\end{figure}
+
+The total power consumption of the amplifier was calculated as:
+\[
+	P_\text{total} = 12.0373~\mu\text{W} + 173.95~\mu\text{W} + (0.924835 \times 198.762~\mu\text{W}) \approx 0.37~\text{mW}.
+\]
+
+\section{AC Analysis}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/ac_analysis.png}
+	\caption{AC frequency response of the amplifier.}
+	\label{fig:ac_response}
+\end{figure}
+
+From the AC sweep results shown in Figure~\ref{fig:ac_response}, the following key parameters were obtained:
+\begin{itemize}
+	\item Gain at \SI{10}{\kilo\hertz}: \SI{18.7305}{\decibel}
+	\item \SI{3}{dB} cutoff frequency: \SI{4.398}{\mega\hertz}
+	\item Unity-gain frequency: \SI{35.4083}{\mega\hertz}
+\end{itemize}
+
+\section{Transient Analysis}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/tran_analysis.png}
+	\caption{Transient response of the amplifier.}
+	\label{fig:tran_response}
+\end{figure}
+
+From the transient simulation shown in Figure~\ref{fig:tran_response}, the measured peak-to-peak values are:
+\begin{itemize}
+	\item $V_\text{out,pp} = \SI{172.49}{\milli\volt}$
+	\item $V_\text{in,pp} = \SI{20}{\milli\volt}$
+\end{itemize}
+
+The corresponding voltage gain is
+\[
+	A_v = \frac{V_\text{out,pp}}{V_\text{in,pp}}
+	= \frac{172.49}{20} \approx 8.625 \; \; (\SI{18.71}{\decibel}).
+\]
+
+\section{Corner Analysis}
+
+Corner simulations were performed for six process corners: \textit{Typical}, \textit{Fast}, and \textit{Slow}, each at $0^{\circ}$C and $100^{\circ}$C. The corresponding AC and transient analysis results are shown below.
+
+\subsection{AC Analysis}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/ac_corner_analysis.png}
+	\caption{AC analysis plots for all corner cases (Typical, Fast, Slow at $0^{\circ}$C and $100^{\circ}$C).}
+\end{figure}
+
+\clearpage
+
+\subsection{Transient Analysis}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/tran_corner_analysis.png}
+	\caption{Transient analysis plots for all corner cases (Typical, Fast, Slow at $0^{\circ}$C and $100^{\circ}$C).}
+\end{figure}
+
+\section{Layout}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/layout.png}
+	\caption{Layout of the designed amplifier.}
+\end{figure}
+
+\clearpage
+
+\subsection{Clean DRC and LVS}
+
+\begin{figure}[H]
+	\centering
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/drc.png}
+		\caption{Clean DRC check.}
+	\end{minipage}\hfill
+	\begin{minipage}{0.48\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{./images/lvs.png}
+		\caption{Clean LVS check.}
+	\end{minipage}
+\end{figure}
+
+\section{PEX Analysis}
+
+\subsection{AC Analysis}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/ac_pex_analysis.png}
+	\caption{AC analysis after post-layout extraction (PEX).}
+\end{figure}
+
+The DC gain after PEX was measured as $18.81\,\text{dB}$, compared to $18.73\,\text{dB}$ before PEX.
+
+\subsection{Transient Analysis}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{./images/tran_pex_analysis.png}
+	\caption{Transient analysis after post-layout extraction (PEX).}
+\end{figure}
+
+The output peak-to-peak voltage after PEX was $174\,\text{mV}$, compared to $172\,\text{mV}$ before PEX.
+
+\end{document}
