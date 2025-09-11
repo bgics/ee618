@@ -30,7 +30,7 @@
 **/*.xdy
 
 # Optional — generated outputs
-# **/*.pdf
-# **/*.dvi
-# **/*.ps
-# **/*.eps
+**/*.pdf
+**/*.dvi
+**/*.ps
+**/*.eps
