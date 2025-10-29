@@ -1,0 +1,1059 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{array}
+
+% \setcounter{secnumdepth}{0}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+
+	\huge \textbf{EE 618: CMOS Analog VLSI Design} \\
+	\vspace{1cm}
+
+	\LARGE \textsc{Course Project 1} \\
+	\vspace{5cm}
+
+	\includegraphics[width=0.55\textwidth]{../icon.png} \\
+	\vspace{5cm}
+
+	\Large
+	\begin{tabular}{rl}
+		\textbf{Student Name:}    & Bhuvansh Goyal    \\
+		\textbf{Roll Number:}     & 22B3908           \\
+		\textbf{Instructor:}      & Prof. Rajesh Zele \\
+		\textbf{Submission Date:} & 29 Oct 2025
+	\end{tabular}
+
+	\vfill
+\end{titlepage}
+
+\clearpage
+
+\tableofcontents
+
+\clearpage
+
+\section{Design Specifications}
+
+The objective is to design an NMOS-input differential two-stage OTA with a differential input and single-ended output. Two compensation techniques are implemented — RC compensation and tracking compensation. The key design targets are summarized below:
+
+\begin{itemize}
+	\item DC gain $\geq$ 50 dB
+	\item Unity gain frequency $\geq$ 100 MHz
+	\item Output voltage swing $\approx 0.6$ V\textsubscript{pp} $\pm$ 10 mV
+	\item Slew rate $\geq 100$ V/$\mu$s
+	\item Phase margin: $60^\circ \leq \text{PM} \leq 75^\circ$
+	\item Input referred spot noise (@ 100 kHz) $\leq$ 90 nV/$\sqrt{\text{Hz}}$
+	\item Input referred spot noise (@ 10 MHz) $\leq$ 40 nV/$\sqrt{\text{Hz}}$
+	\item Input common-mode voltage = 0.75 V
+	\item Load capacitance $C_L = 1$ pF (mimcap: W = L = 4.5 $\mu$m, Multiplier = 40)
+	\item Supply voltage $V_{DD} = 1.2$ V
+	\item Power consumption $\leq 0.3$ mW
+\end{itemize}
+
+\section{Hand Calculations}
+
+The calculations here are taken from Sir's lecture on OTA design.
+
+\subsection{Schematic}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{ota_rc.eps}
+	\caption{RC Compensation Schematic.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{ota_tracking.eps}
+	\caption{Tracking Compensation Schematic.}
+\end{figure}
+
+\subsection{Design Calculations}
+
+\begin{align*}
+	v_{n,eq}^2 & = \frac{16kT}{3g_{m1}} \le (40~\text{nV}/\sqrt{\text{Hz}})^2                                       \\
+	g_{m1}     & \ge 13.8~\text{mS} \quad \text{(where $g_{m1}$ is transconductance of the NMOS differential pair)} \\[6pt]
+	f_{ugf}    & = \frac{g_{m1}}{2\pi C_c} \ge 100~\text{MHz}                                                       \\
+	C_c        & \le \frac{g_{m1}}{2\pi \times 100~\text{MHz}} = 21.96~\text{fF}
+\end{align*}
+
+\textbf{Insights:}
+\begin{itemize}
+	\item To take care of the flicker noise specification, if it was too high, the device area was increased while keeping the $W/L$ ratio constant.
+	\item To obtain a larger $C_c$, $g_{m1}$ should be increased.
+\end{itemize}
+
+\begin{align*}
+	I_{SS}  & \ge C_c \times 100~\text{V}/\mu\text{s} = 2.196~\mu\text{A}      \\
+	I_{OSS} & \ge I_{SS}\left(1 + \frac{C_L}{C_c}\right) = 102.196~\mu\text{A}
+\end{align*}
+
+\textbf{Insight:}
+To meet the slew rate specification under corner variations, $I_{SS}$ must be well above the $C_c \times 100$ limit. A higher $C_c$ also helps since a smaller $C_c$ would force $I_{OSS}$ too high, potentially violating the power constraint. $I_{SS}$ and $I_{OSS}$ were therefore chosen as convenient multiples of 10.
+
+\begin{align*}
+	\left(\frac{W}{L}\right)_1 & = \frac{g_{m1}^2}{I_{SS} K_n} = \frac{13.8^2}{2.196~\mu \times 280~\mu\text{A}/\text{V}^2} = 0.31
+\end{align*}
+
+\begin{align*}
+	f_{nd}                     & = \frac{100~\text{MHz}}{\tan(30^\circ)} = 173.2~\text{MHz} \\
+	g_{m6}                     & = 2\pi f_{nd} C_L = 1.088~\text{mS}                        \\
+	\left(\frac{W}{L}\right)_6 & \ge \frac{g_{m6}^2}{2 I_{OSS} K_p} = 23.166
+\end{align*}
+
+\textbf{Insight:}
+This $W/L$ can be greater than or equal to the calculated value since increasing it boosts $g_m$, improving the phase margin.
+
+\begin{align*}
+	V_{DSAT6} & \le 0.15~\text{V}, \quad V_{DSAT7} \le 0.45~\text{V}
+\end{align*}
+
+Given $V_{CM} = 0.75~\text{V}$, the upper headroom is $0.15~\text{V}$ and the lower headroom is $0.45~\text{V}$.
+
+\begin{align*}
+	\left(\frac{W}{L}\right)_6 & \ge \frac{2 I_{OSS}}{K_p V_{DSAT6}^2} = 36.336 \quad \text{(increased to meet swing specification)} \\
+	\left(\frac{W}{L}\right)_7 & \ge \frac{2 I_{OSS}}{K_n V_{DSAT7}^2} = 3.6
+\end{align*}
+
+\begin{align*}
+	\left(\frac{W}{L}\right)_{3,4} = \frac{I_{SS}}{2 I_{OSS}} \left(\frac{W}{L}\right)_6
+\end{align*}
+
+\begin{align*}
+	A_{v1} & = \sqrt{\frac{2 K_n (W/L)_1}{I_{SS}/2}} \times \frac{1}{\lambda_n + \lambda_p} = \frac{12.574}{\lambda_n + \lambda_p} \\
+	A_{v2} & = \sqrt{\frac{2 K_p (W/L)_6}{I_{OSS}}} \times \frac{1}{\lambda_n + \lambda_p} = \frac{13.33}{\lambda_n + \lambda_p}
+\end{align*}
+
+\begin{align*}
+	A_v & = A_{v1} A_{v2} = 316.23 = \frac{167.6525}{4\lambda^2} \Rightarrow \lambda = 0.132
+\end{align*}
+
+\begin{align*}
+	L_p & = \frac{45 \times 0.41}{0.132} = 139.77~\text{nm}  \\
+	L_n & = \frac{45 \times 0.585}{0.132} = 199.43~\text{nm}
+\end{align*}
+
+\begin{align*}
+	R_z = \frac{1}{g_{m6}}\left(1 + \frac{C_L}{C_c}\right) = 34.168~\text{k}\Omega
+\end{align*}
+
+\subsection{Tracking Compensation}
+\begin{align*}
+	\left(\frac{W}{L}\right)_x = \left(\frac{W}{L}\right)_y = \frac{I_z}{I_{OSS}} \left(\frac{W}{L}\right)_6
+\end{align*}
+
+If $(W/L)_x = (W/L)_y$, then:
+\begin{align*}
+	\left(\frac{W}{L}\right)_z = \left(\frac{W}{L}\right)_6 \times \frac{C_c}{C_L + C_c}
+\end{align*}
+
+\textbf{Insights:}
+\begin{itemize}
+	\item As $(W/L)_6$ is increased (due to $V_{DSAT6}$ constraint), the phase margin overshoots; to compensate, $(W/L)_1$ is slightly increased to reduce PM.
+	\item Initially, the gain was lower than 50 dB, so increasing the device length reduced $\lambda$, which in turn improved gain.
+	\item Multipliers for current mirror devices were kept as powers of 2 to simplify common-centroid layout.
+	\item $C_c$ was chosen to have the same base geometry as the load capacitor (4.5 µm $\times$ 4.5 µm) for matching.
+\end{itemize}
+
+\subsection{First Trial Values}
+\[
+	\begin{aligned}
+		L       & = 200~\text{nm for all}                                                                                                           \\
+		I_{SS}  & = I_z = 10~\mu\text{A}, \quad C_c = 100~\text{fF (multiplier = 4)}, \quad R_z = 7~\text{k}\Omega, \quad I_{OSS} = 110~\mu\text{A} \\
+		(W/L)_1 & = 2, \quad (W/L)_6 = 44, \quad (W/L)_{3,4} = 2, \quad (W/L)_{x,y} = 4, \quad (W/L)_z = 4                                          \\
+		(W/L)_7 & = 11, \quad (W/L)_{5,8} = 1, \quad (W/L)_b = 1
+	\end{aligned}
+\]
+
+These values did not meet the desired specifications. Using the insights above and iterative tuning, the following final set was obtained.
+
+\subsection{Final Values}
+\[
+	\begin{aligned}
+		L       & = 600~\text{nm for all}                                                                                                         \\
+		I_{SS}  & = 30~\mu\text{A}, \quad I_z = 10~\mu\text{A}, \quad I_{OSS} = 180~\mu\text{A},                                                  \\
+		C_c     & = 200~\text{fF (multiplier = 8)}, \quad R_z = 2.4~\text{k}\Omega                                                                \\
+		(W/L)_1 & = 5, \quad (W/L)_6 = 72, \quad (W/L)_{3,4} = 6, \quad (W/L)_{x,y} = 4, \quad (W/L)_z = 12                                       \\
+		(W/L)_7 & = \frac{400nm \times 34}{600nm}, \quad (W/L)_5 = \frac{400nm \times 6}{600nm}, \quad (W/L)_{8,B} = \frac{400nm \times 2}{600nm}
+	\end{aligned}
+\]
+
+\section{RC Compensation}
+
+\subsection{DC Operating Point}
+
+\subsubsection{Component Parameters}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_component_parameters.png}
+	\caption{Component parameters.}
+\end{figure}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dc_op_Nominal.png}
+	\caption{DC operating points — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_pwr_Nominal.png}
+	\caption{Supply current measurement — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dc_op_TT.png}
+	\caption{DC operating points — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_pwr_TT.png}
+	\caption{Supply current measurement — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dc_op_FF.png}
+	\caption{DC operating points — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_pwr_FF.png}
+	\caption{Supply current measurement — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dc_op_SS.png}
+	\caption{DC operating points — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_pwr_SS.png}
+	\caption{Supply current measurement — SS.}
+\end{figure}
+
+\subsection{Stability Analysis}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_stab_bode_Nominal.png}
+	\caption{Bode magnitude and phase plot — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/rc_stab_summary_Nominal.png}
+	\caption{Stability Summary — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_stab_bode_TT.png}
+	\caption{Bode magnitude and phase plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/rc_stab_summary_TT.png}
+	\caption{Stability Summary — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_stab_bode_FF.png}
+	\caption{Bode magnitude and phase plot — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/rc_stab_summary_FF.png}
+	\caption{Stability Summary — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_stab_bode_SS.png}
+	\caption{Bode magnitude and phase plot — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/rc_stab_summary_SS.png}
+	\caption{Stability Summary — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_stab_bode_Combined.png}
+	\caption{Bode magnitude and phase plot — Combined.}
+\end{figure}
+
+\subsection{AC Analysis: Differential Gain}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_bode_Nominal.png}
+	\caption{Closed-loop gain and phase plot — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_offset_Nominal.png}
+	\caption{Input-referred systematic offset — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_dc_op_Nominal.png}
+	\caption{DC operating points — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_bode_TT.png}
+	\caption{Closed-loop gain and phase plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_offset_TT.png}
+	\caption{Input-referred systematic offset — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_dc_op_TT.png}
+	\caption{DC operating points — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_bode_FF.png}
+	\caption{Closed-loop gain and phase plot — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_offset_FF.png}
+	\caption{Input-referred systematic offset — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_dc_op_FF.png}
+	\caption{DC operating points — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_bode_SS.png}
+	\caption{Closed-loop gain and phase plot — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_offset_SS.png}
+	\caption{Input-referred systematic offset — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_dc_op_SS.png}
+	\caption{DC operating points — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_bode_Combined.png}
+	\caption{Closed-loop gain and phase plot — Combined.}
+\end{figure}
+
+\subsection{AC Analysis: Common Mode Gain}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_cm_bode_Nominal.png}
+	\caption{Open-loop common-mode gain plot — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_cm_bode_TT.png}
+	\caption{Open-loop common-mode gain plot — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_cm_bode_FF.png}
+	\caption{Open-loop common-mode gain plot — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_cm_bode_SS.png}
+	\caption{Open-loop common-mode gain plot — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_cm_bode_Combined.png}
+	\caption{Open-loop common-mode gain plot — Combined.}
+\end{figure}
+
+\subsection{Transient Analysis: Sinusoidal Input}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_sin_Nominal.png}
+	\caption{Input and output transient waveforms — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_sin_TT.png}
+	\caption{Input and output transient waveforms — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_sin_FF.png}
+	\caption{Input and output transient waveforms — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_sin_SS.png}
+	\caption{Input and output transient waveforms — SS.}
+\end{figure}
+
+\subsection{Transient Analysis: Step Input}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_slew_Nominal.png}
+	\caption{Output derivative plot — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_ts_Nominal.png}
+	\caption{Settling time plot (1\% accuracy) — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_slew_TT.png}
+	\caption{Output derivative plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_ts_TT.png}
+	\caption{Settling time plot (1\% accuracy) — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_slew_FF.png}
+	\caption{Output derivative plot — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_ts_FF.png}
+	\caption{Settling time plot (1\% accuracy) — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_slew_SS.png}
+	\caption{Output derivative plot — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_ts_SS.png}
+	\caption{Settling time plot (1\% accuracy) — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_slew_Combined.png}
+	\caption{Output derivative plot — Combined.}
+\end{figure}
+
+\subsection{Noise analysis}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_noise_Nominal.png}
+	\caption{Input-referred noise PSD — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/rc_noise_summary_Nominal.png}
+	\caption{Noise summary — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_noise_TT.png}
+	\caption{Input-referred noise PSD — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/rc_noise_summary_TT.png}
+	\caption{Noise summary — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_noise_FF.png}
+	\caption{Input-referred noise PSD — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/rc_noise_summary_FF.png}
+	\caption{Noise summary — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_noise_SS.png}
+	\caption{Input-referred noise PSD — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/rc_noise_summary_SS.png}
+	\caption{Noise summary — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_noise_Combined.png}
+	\caption{Input-referred noise PSD — Combined.}
+\end{figure}
+
+\subsection{Summary of results obtained}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.2}
+	\setlength{\tabcolsep}{5pt}
+	\begin{tabularx}{\textwidth}{|c|>{\raggedright\arraybackslash}X|c|c|c|c|}
+		\hline
+		\textbf{Q.No}      & \textbf{Parameters}                                           & \textbf{Nominal} & \textbf{TT} & \textbf{FF} & \textbf{SS} \\
+		\hline
+		2                  & Power Consumption (mW)                                        & 0.261            & 0.261       & 0.265       & 0.257       \\
+		\hline
+		\multirow{4}{*}{3} & DC gain (dB)                                                  & 54.922           & 54.928      & 54.728      & 55.048      \\ \cline{2-6}
+		                   & f-3dB (kHz)                                                   & 215.913          & 215.725     & 265.005     & 178.106     \\ \cline{2-6}
+		                   & Unity Gain Frequency (MHz)                                    & 114.266          & 118.459     & 127.782     & 102.539     \\ \cline{2-6}
+		                   & Phase margin ($^\circ$)                                       & 66.038           & 67.574      & 60.087      & 71.240      \\
+		\hline
+		\multirow{3}{*}{4} & Closed Loop Gain (mdB)                                        & -5.468           & -5.466      & -6.557      & -2.648      \\ \cline{2-6}
+		                   & f-3dB (MHz)                                                   & 183.380          & 195.636     & 208.755     & 165.637     \\ \cline{2-6}
+		                   & Input referred offset (DC analysis) ($\mu{\text{V}}$)         & 123.60           & 123.70      & 11.82       & 239.60      \\
+		\hline
+		\multirow{2}{*}{5} & Common-mode gain (dB)                                         & -3.176           & -3.178      & -4.179      & -0.744      \\ \cline{2-6}
+		                   & CMRR (dB)                                                     & 58.098           & 58.106      & 58.907      & 55.792      \\
+		\hline
+		6                  & Output Swing (Vpp) (mV)                                       & 599.402          & 599.655     & 599.360     & 600.229     \\
+		\hline
+		\multirow{2}{*}{7} & Slew rate (SR) (V/$\mu{\text{s}}$)                            & 107.561          & 112.734     & 117.014     & 101.630     \\ \cline{2-6}
+		                   & Settling Time (1\% accuracy) (ns)                             & 3.46             & 3.50        & 2.86        & 4.82        \\
+		\hline
+		\multirow{4}{*}{8} & Input referred spot noise (@ 100 kHz) (nV/$\sqrt{\text{Hz}}$) & 60.035           & 60.034      & 57.941      & 62.029      \\ \cline{2-6}
+		                   & Input referred spot noise (@ 10 MHz) (nV/$\sqrt{\text{Hz}}$)  & 17.856           & 17.863      & 17.537      & 18.306      \\ \cline{2-6}
+		                   & Total summarised Noise ($\mu$V)                               & 286.785          & 291.234     & 298.830     & 281.587     \\ \cline{2-6}
+		                   & Total input-referred Noise ($\mu$V)                           & 386.127          & 382.986     & 368.836     & 402.357     \\
+		\hline
+	\end{tabularx}
+\end{table}
+
+\section{Tracking Compensation}
+
+\subsection{DC Operating Point}
+
+\subsubsection{Component Parameters}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_component_parameters.png}
+	\caption{Component parameters.}
+\end{figure}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dc_op_Nominal.png}
+	\caption{DC operating points — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/tc_pwr_Nominal.png}
+	\caption{Supply current measurement — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dc_op_TT.png}
+	\caption{DC operating points — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/tc_pwr_TT.png}
+	\caption{Supply current measurement — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dc_op_FF.png}
+	\caption{DC operating points — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/tc_pwr_FF.png}
+	\caption{Supply current measurement — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dc_op_SS.png}
+	\caption{DC operating points — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/tc_pwr_SS.png}
+	\caption{Supply current measurement — SS.}
+\end{figure}
+
+\subsection{Stability Analysis}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_stab_bode_Nominal.png}
+	\caption{Bode magnitude and phase plot — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/tc_stab_summary_Nominal.png}
+	\caption{Stability Summary — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_stab_bode_TT.png}
+	\caption{Bode magnitude and phase plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/tc_stab_summary_TT.png}
+	\caption{Stability Summary — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_stab_bode_FF.png}
+	\caption{Bode magnitude and phase plot — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/tc_stab_summary_FF.png}
+	\caption{Stability Summary — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_stab_bode_SS.png}
+	\caption{Bode magnitude and phase plot — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/tc_stab_summary_SS.png}
+	\caption{Stability Summary — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_stab_bode_Combined.png}
+	\caption{Bode magnitude and phase plot — Combined.}
+\end{figure}
+
+\subsection{AC Analysis: Differential Gain}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_bode_Nominal.png}
+	\caption{Closed-loop gain and phase plot — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/tc_offset_Nominal.png}
+	\caption{Input-referred systematic offset — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_dc_op_Nominal.png}
+	\caption{DC operating points — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_bode_TT.png}
+	\caption{Closed-loop gain and phase plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/tc_offset_TT.png}
+	\caption{Input-referred systematic offset — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_dc_op_TT.png}
+	\caption{DC operating points — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_bode_FF.png}
+	\caption{Closed-loop gain and phase plot — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/tc_offset_FF.png}
+	\caption{Input-referred systematic offset — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_dc_op_FF.png}
+	\caption{DC operating points — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_bode_SS.png}
+	\caption{Closed-loop gain and phase plot — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/tc_offset_SS.png}
+	\caption{Input-referred systematic offset — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_dc_op_SS.png}
+	\caption{DC operating points — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_dm_bode_Combined.png}
+	\caption{Closed-loop gain and phase plot — Combined.}
+\end{figure}
+
+\subsection{AC Analysis: Common Mode Gain}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_cm_bode_Nominal.png}
+	\caption{Open-loop common-mode gain plot — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_cm_bode_TT.png}
+	\caption{Open-loop common-mode gain plot — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_cm_bode_FF.png}
+	\caption{Open-loop common-mode gain plot — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_cm_bode_SS.png}
+	\caption{Open-loop common-mode gain plot — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_cm_bode_Combined.png}
+	\caption{Open-loop common-mode gain plot — Combined.}
+\end{figure}
+
+\subsection{Transient Analysis: Sinusoidal Input}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_sin_Nominal.png}
+	\caption{Input and output transient waveforms — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_sin_TT.png}
+	\caption{Input and output transient waveforms — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_sin_FF.png}
+	\caption{Input and output transient waveforms — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_sin_SS.png}
+	\caption{Input and output transient waveforms — SS.}
+\end{figure}
+
+\subsection{Transient Analysis: Step Input}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_slew_Nominal.png}
+	\caption{Output derivative plot — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_ts_Nominal.png}
+	\caption{Settling time plot (1\% accuracy) — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_slew_TT.png}
+	\caption{Output derivative plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_ts_TT.png}
+	\caption{Settling time plot (1\% accuracy) — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_slew_FF.png}
+	\caption{Output derivative plot — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_ts_FF.png}
+	\caption{Settling time plot (1\% accuracy) — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_slew_SS.png}
+	\caption{Output derivative plot — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_ts_SS.png}
+	\caption{Settling time plot (1\% accuracy) — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_slew_Combined.png}
+	\caption{Output derivative plot — Combined.}
+\end{figure}
+
+\subsection{Noise analysis}
+
+\subsubsection{Nominal}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_noise_Nominal.png}
+	\caption{Input-referred noise PSD — Nominal.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/tc_noise_summary_Nominal.png}
+	\caption{Noise summary — Nominal.}
+\end{figure}
+
+\subsubsection{TT Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_noise_TT.png}
+	\caption{Input-referred noise PSD — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/tc_noise_summary_TT.png}
+	\caption{Noise summary — TT.}
+\end{figure}
+
+\subsubsection{FF Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_noise_FF.png}
+	\caption{Input-referred noise PSD — FF.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/tc_noise_summary_FF.png}
+	\caption{Noise summary — FF.}
+\end{figure}
+
+\subsubsection{SS Corner}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_noise_SS.png}
+	\caption{Input-referred noise PSD — SS.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/tc_noise_summary_SS.png}
+	\caption{Noise summary — SS.}
+\end{figure}
+
+\subsubsection{Combined}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/tc_noise_Combined.png}
+	\caption{Input-referred noise PSD — Combined.}
+\end{figure}
+
+\subsection{Summary of results obtained}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.2}
+	\setlength{\tabcolsep}{5pt}
+	\begin{tabularx}{\textwidth}{|c|>{\raggedright\arraybackslash}X|c|c|c|c|}
+		\hline
+		\textbf{Q.No}      & \textbf{Parameters}                                           & \textbf{Nominal} & \textbf{TT} & \textbf{FF} & \textbf{SS} \\
+		\hline
+		2                  & Power Consumption (mW)                                        & 0.273            & 0.273       & 0.277       & 0.269       \\
+		\hline
+		\multirow{4}{*}{3} & DC gain (dB)                                                  & 54.919           & 54.926      & 54.725      & 55.045      \\ \cline{2-6}
+		                   & f-3dB (kHz)                                                   & 213.979          & 213.820     & 262.190     & 176.732     \\ \cline{2-6}
+		                   & Unity Gain Frequency (MHz)                                    & 120.059          & 120.014     & 137.745     & 104.752     \\ \cline{2-6}
+		                   & Phase margin ($^\circ$)                                       & 65.077           & 65.026      & 61.183      & 68.515      \\
+		\hline
+		\multirow{3}{*}{4} & Closed Loop Gain (mdB)                                        & -5.476           & -5.475      & -6.568      & -2.656      \\ \cline{2-6}
+		                   & f-3dB (MHz)                                                   & 206.437          & 206.400     & 235.518     & 178.520     \\ \cline{2-6}
+		                   & Input referred offset (DC analysis) ($\mu{\text{V}}$)         & 121.70           & 121.70      & 9.28        & 237.90      \\
+		\hline
+		\multirow{2}{*}{5} & Common-mode gain (dB)                                         & -3.182           & -3.184      & -4.186      & -0.750      \\ \cline{2-6}
+		                   & CMRR (dB)                                                     & 58.101           & 58.110      & 58.911      & 55.795      \\
+		\hline
+		6                  & Output Swing (Vpp) (mV)                                       & 599.633          & 599.836     & 599.190     & 600.246     \\
+		\hline
+		\multirow{2}{*}{7} & Slew rate (SR) (V/$\mu{\text{s}}$)                            & 113.364          & 113.397     & 126.629     & 102.164     \\ \cline{2-6}
+		                   & Settling Time (1\% accuracy) (ns)                             & 3.28             & 3.30        & 2.74        & 4.23        \\
+		\hline
+		\multirow{4}{*}{8} & Input referred spot noise (@ 100 kHz) (nV/$\sqrt{\text{Hz}}$) & 60.035           & 60.034      & 57.941      & 62.029      \\ \cline{2-6}
+		                   & Input referred spot noise (@ 10 MHz) (nV/$\sqrt{\text{Hz}}$)  & 17.861           & 17.868      & 17.542      & 18.313      \\ \cline{2-6}
+		                   & Total summarised Noise ($\mu$V)                               & 302.119          & 302.310     & 316.728     & 291.266     \\ \cline{2-6}
+		                   & Total input-referred Noise ($\mu$V)                           & 387.057          & 387.300     & 371.834     & 405.743     \\
+		\hline
+	\end{tabularx}
+\end{table}
+
+\end{document}
