@@ -1,0 +1,394 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption} 
+
+% \setcounter{secnumdepth}{0}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+
+	\huge \textbf{EE 618: CMOS Analog VLSI Design} \\
+	\vspace{1cm}
+
+	\LARGE \textsc{Course Project 2} \\
+	\vspace{5cm}
+
+	\includegraphics[width=0.55\textwidth]{../icon.png} \\
+	\vspace{5cm}
+
+	\Large
+	\begin{tabular}{rl}
+		\textbf{Student Name:}    & Bhuvansh Goyal    \\
+		\textbf{Roll Number:}     & 22B3908           \\
+		\textbf{Instructor:}      & Prof. Rajesh Zele \\
+		\textbf{Submission Date:} & 17 Nov 2025
+	\end{tabular}
+
+	\vfill
+\end{titlepage}
+
+\clearpage
+
+\tableofcontents
+
+\clearpage
+
+\section{RC Compensation}
+
+\subsection{DRC and LVS Checks}
+
+The layout was verified using DRC and LVS. One warning appeared during extraction, but as confirmed by the TAs, it is safe to ignore. The corresponding screenshots are provided below.
+
+\begin{figure}[H]
+	\centering
+
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/rc_drc.png}
+		\caption{DRC check}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/lvs_1.png}
+		\caption{LVS report (1)}
+	\end{subfigure}
+
+	\vspace{0.5cm}
+
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/lvs_2.png}
+		\caption{LVS report (2)}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{images/lvs_3.png}
+		\caption{LVS report (3)}
+	\end{subfigure}
+
+	\caption{Summary of DRC and LVS verification results. The extraction warning shown is approved to be ignored.}
+\end{figure}
+
+\subsection{PEX Extraction}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/extraction_PEX.png}
+	\caption{Successful PEX extraction summary from Quantus.}
+\end{figure}
+
+\clearpage
+
+\subsection{Layout}
+
+The final layout occupies an area of \textbf{22.5\,µm × 20.4\,µm}, as shown in Fig.~\ref{fig:ota_layout}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_ota_layout.png}
+	\caption{Final OTA layout showing device placement and routing.}
+	\label{fig:ota_layout}
+\end{figure}
+
+Common-centroid techniques were used to ensure accurate matching across all critical device groups.
+The current-mirror transistors \textbf{(NM6, NM7, NM9)} were implemented in a common-centroid arrangement with identical unit device dimensions.
+The differential pair \textbf{(NM12, NM13)} was also laid out using a common-centroid pattern to suppress gradient-induced mismatch.
+
+The PMOS devices \textbf{(PM13, PM14, PM15)} were similarly placed in a common-centroid configuration to maintain uniform device characteristics and reduce systematic mismatch.
+
+The overall layout was made fully symmetric wherever possible, further minimizing mismatch due to process gradients and ensuring consistent electrical behavior across mirrored structures.
+
+All matched devices use identical unit-cell geometry and segmentation, providing symmetry and improved layout-level matching.
+\subsection{DC Operating Point}
+
+\subsubsection{Component Parameters}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_component_parameters_PEX.png}
+	\caption{Component parameters.}
+\end{figure}
+
+\subsubsection{TT (Schematic)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_dc_op_TT.png}
+	\caption{DC operating points — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{../cp1/images/rc_pwr_TT.png}
+	\caption{Supply current measurement — TT.}
+\end{figure}
+
+\subsubsection{TT (PEX)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dc_op_PEX.png}
+	\caption{DC operating points — TT.}
+\end{figure}
+
+In PEX simulations the currents show up divided by the MOSFET multiplier, unlike the schematic results.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_pwr_PEX.png}
+	\caption{Supply current measurement — TT.}
+\end{figure}
+
+\subsection{Stability Analysis}
+
+\subsubsection{TT (Schematic)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_stab_bode_TT.png}
+	\caption{Bode magnitude and phase plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{../cp1/images/rc_stab_summary_TT.png}
+	\caption{Stability Summary — TT.}
+\end{figure}
+
+\subsubsection{TT (PEX)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_stab_TT_PEX.png}
+	\caption{Bode magnitude and phase plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\textwidth]{images/rc_stab_TT_summary_PEX.png}
+	\caption{Stability Summary — TT.}
+\end{figure}
+
+\subsubsection{Schematic vs PEX (TT)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_stab_combined.png}
+	\caption{Bode magnitude and phase plot — Schematic vs PEX.}
+\end{figure}
+
+\subsection{AC Analysis: Differential Gain}
+
+\subsubsection{TT (Schematic)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_dm_bode_TT.png}
+	\caption{Closed-loop gain and phase plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{../cp1/images/rc_offset_TT.png}
+	\caption{Input-referred systematic offset — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_dm_dc_op_TT.png}
+	\caption{DC operating points — TT.}
+\end{figure}
+
+\subsubsection{TT (PEX)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_TT_PEX.png}
+	\caption{Closed-loop gain and phase plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{images/rc_dm_offset_PEX.png}
+	\caption{Input-referred systematic offset — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_op_PEX.png}
+	\caption{DC operating points — TT.}
+\end{figure}
+
+In PEX simulations the currents show up divided by the MOSFET multiplier, unlike the schematic results.
+
+\subsubsection{Schematic vs PEX (TT)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_dm_combined.png}
+	\caption{Closed-loop gain and phase plot — Schematic vs PEX.}
+\end{figure}
+
+% \subsection{AC Analysis: Common Mode Gain}
+%
+\subsubsection{TT (Schematic)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_cm_bode_TT.png}
+	\caption{Open-loop common-mode gain plot — TT.}
+\end{figure}
+
+\subsubsection{TT (PEX)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_cm_PEX.png}
+	\caption{Open-loop common-mode gain plot — TT.}
+\end{figure}
+
+\subsubsection{Schematic vs PEX (TT)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_cm_combined.png}
+	\caption{Open-loop common-mode gain plot — Schematic vs PEX.}
+\end{figure}
+
+\subsection{Transient Analysis: Sinusoidal Input}
+
+\subsubsection{TT (Schematic)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_sin_TT.png}
+	\caption{Input and output transient waveforms — TT.}
+\end{figure}
+
+\subsubsection{TT (PEX)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_sin_waveform_PEX.png}
+	\caption{Input and output transient waveforms — TT.}
+\end{figure}
+
+\subsection{Transient Analysis: Step Input}
+
+\subsubsection{TT (Schematic)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_slew_TT.png}
+	\caption{Output derivative plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_ts_TT.png}
+	\caption{Settling time plot (1\% accuracy) — TT.}
+\end{figure}
+
+\subsubsection{TT (PEX)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_slew_deriv_PEX.png}
+	\caption{Output derivative plot — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_slew_PEX.png}
+	\caption{Settling time plot (1\% accuracy) — TT.}
+\end{figure}
+
+\subsubsection{Schematic vs PEX (TT)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_slew_combined.png}
+	\caption{Output derivative plot — Schematic vs PEX.}
+\end{figure}
+
+\subsection{Noise analysis}
+
+\subsubsection{TT (Schematic)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{../cp1/images/rc_noise_TT.png}
+	\caption{Input-referred noise PSD — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{../cp1/images/rc_noise_summary_TT.png}
+	\caption{Noise summary — TT.}
+\end{figure}
+
+\subsubsection{TT (PEX)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_noise_PEX.png}
+	\caption{Input-referred noise PSD — TT.}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{images/rc_noise_summary_PEX.png}
+	\caption{Noise summary — TT.}
+\end{figure}
+
+\subsubsection{Schematic vs PEX (TT)}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{images/rc_noise_combined.png}
+	\caption{Input-referred noise PSD — Schematic vs PEX.}
+\end{figure}
+
+\subsection{Summary of results obtained}
+
+\begin{table}[H]
+	\centering
+	\renewcommand{\arraystretch}{1.2}
+	\setlength{\tabcolsep}{5pt}
+	\begin{tabularx}{0.9\textwidth}{|c|>{\raggedright\arraybackslash}X|c|c|}
+		\hline
+		\textbf{Q.No}      & \textbf{Parameters}                                        & \textbf{Layout Results} & \textbf{Schematic Results} \\
+		\hline
+		2                  & Power Consumption (mW)                                     & 0.261                   & 0.261                      \\
+		\hline
+		\multirow{4}{*}{3} & DC gain (dB)                                               & 54.922                  & 54.928                     \\ \cline{2-4}
+		                   & f-3dB (kHz)                                                & 207.993                 & 215.725                    \\ \cline{2-4}
+		                   & Unity Gain Frequency (MHz)                                 & 110.413                 & 118.459                    \\ \cline{2-4}
+		                   & Phase margin ($^\circ$)                                    & 64.3908                 & 67.574                     \\
+		\hline
+		\multirow{3}{*}{4} & Closed Loop Gain (mdB)                                     & -6.256                  & -5.466                     \\ \cline{2-4}
+		                   & f-3dB (MHz)                                                & 183.598                 & 195.636                    \\ \cline{2-4}
+		                   & Input referred offset ($\mu$V)                             & 203.70                  & 123.70                     \\
+		\hline
+		\multirow{2}{*}{5} & Common-mode gain (dB)                                      & -4.004                  & -3.178                     \\ \cline{2-4}
+		                   & CMRR (dB)                                                  & 58.926                  & 58.106                     \\
+		\hline
+		6                  & Output Swing (Vpp) (mV)                                    & 599.394                 & 599.655                    \\
+		\hline
+		\multirow{2}{*}{7} & Slew rate (V/$\mu$s)                                       & 101.672                 & 112.734                    \\ \cline{2-4}
+		                   & Settling Time (1\% accuracy) (ns)                          & 3.48                    & 3.50                       \\
+		\hline
+		\multirow{4}{*}{8} & Input referred spot noise @100 kHz (nV/$\sqrt{\text{Hz}}$) & 59.677                  & 60.034                     \\ \cline{2-4}
+		                   & Input referred spot noise @10 MHz (nV/$\sqrt{\text{Hz}}$)  & 17.396                  & 17.863                     \\ \cline{2-4}
+		                   & Total summarised Noise ($\mu$V)                            & 285.557                 & 291.234                    \\ \cline{2-4}
+		                   & Total input-referred Noise ($\mu$V)                        & 386.885                 & 382.986                    \\
+		\hline
+	\end{tabularx}
+\end{table}
+
+\subsection{Comments}
+
+In the PEX simulations, the magnitude plot flattens out at high frequencies. This behaviour is caused by \textbf{parasitic zeros} introduced by layout effects such as feedthrough capacitances. These zeros contribute a \(+20\,\text{dB/dec}\) slope, which cancels the dominant pole’s \(-20\,\text{dB/dec}\) roll-off, leading to a flat high-frequency gain response.
+
+The Unity-Gain Frequency (UGF) also decreases after PEX. Since
+\( f_{\text{UGF}} \approx g_{m1} / (2\pi C_c) \), an increase in the effective compensation capacitance \(C_c\) due to parasitics directly lowers the UGF.
+
+For the same reason, the Slew Rate (SR) degrades. Using the relation
+\( \text{SR} = I_{SS}/C_c \), the increased \(C_c\) reduces the SR from
+\(112\,\text{V}/\mu\text{s}\) in the schematic to \(101\,\text{V}/\mu\text{s}\) in the PEX results.
+
+All other steady-state performance parameters remain consistent with the schematic behaviour.
+
+\end{document}
