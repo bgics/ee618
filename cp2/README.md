@@ -24,6 +24,8 @@ This project focuses on the physical layout implementation and verification of a
 
 ### Layout Features
 
+![OTA Layout](images/rc_ota_layout.png)
+
 - Layout area: 22.5 µm × 20.4 µm
 - Common-centroid techniques for matched devices
 - Parasitic extraction using Quantus QRC
